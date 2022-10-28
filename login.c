@@ -1,10 +1,10 @@
 // Nome do programa: Sistema de login e cadastro em c
 // Objetivo do programa:
-// - Cadastro / login em um sistema que guarda os registros de entrada em um arquivo bin·rio.
-// - Com um cÛdigo fonte coerente
-// - Sujeito a mudanÁas
+// - Cadastro / login em um sistema que guarda os registros de entrada em um arquivo bin√°rio.
+// - Com um c√≥digo fonte coerente
+// - Sujeito a mudan√ßas
 // Nome do programador: Herton Silveira
-// Data de criaÁ„o: 26 / outubro / 2022
+// Data de cria√ß√£o: 26 / outubro / 2022
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,8 +13,8 @@
 
 #define TAMNOME 60
 #define TAMSENHA 30
-#define MIN 6 // mÌnino de caracters em uma senha ou nome
-
+#define MIN 6 // m√≠nino de caracters em uma senha ou nome
+#define TENTATIVA 5
 typedef struct
 {
     char Nome[TAMNOME];
@@ -25,6 +25,7 @@ typedef struct
 void cadastro();
 void login();
 int verifica_Login(char senha[], char nome[]);
+void limpaVetor(char vetor[]);
 
 void main()
 {
@@ -33,7 +34,7 @@ void main()
     int escolha;
 
     printf("    Sistema login   \n");
-    printf("\nEscolha uma opÁ„o:\n");
+    printf("\nEscolha uma op√ß√£o:\n");
     printf("[1] Cadastrar-se\n");
     printf("[2] Fazer login\n");
     printf("[3] Sair\n");
@@ -53,7 +54,7 @@ void main()
         break;
 
     default:
-        printf("Escolha inv·lida.");
+        printf("Escolha inv√°lida.");
         break;
     }
     exit(1);
@@ -65,9 +66,9 @@ void cadastro()
 
     FILE *Cadastros;
 
-    Cadastros = fopen("cadastros.dat", "ab"); // cria um arquivo bin·rio para gravaÁ„o ou apenas altera um existente
+    Cadastros = fopen("cadastros.dat", "ab"); // cria um arquivo bin√°rio para gravar ou apenas altera um existente
 
-    if (Cadastros == NULL) // Caso n„o consiga abrir o arquivo
+    if (Cadastros == NULL) // Caso nÔøΩo consiga abrir o arquivo
     {
         printf("falha ao ler o arquivo");
         exit(1);
@@ -80,13 +81,13 @@ void cadastro()
         printf("Nome:");
 
         fgets(usuario_cadastro.Nome, TAMNOME, stdin);
-        usuario_cadastro.Nome[strcspn(usuario_cadastro.Nome, "\n")] = '\0'; // busca \n que o fgets lÍ e o substitui pelo pelo caracter nulo
+        usuario_cadastro.Nome[strcspn(usuario_cadastro.Nome, "\n")] = '\0'; // busca \n que o fgets l√™ e o substitui pelo pelo caracter nulo
 
         if (verifica_Login("**", usuario_cadastro.Nome) == 10)
         {
             fclose(Cadastros);
-            printf("O nome %s j· existe.", usuario_cadastro.Nome); // verifica se o nome de entrada j· existe usando a funcao login
-            exit(1);                                               // sÛ que com uma senha que claramente n„o est· certa,  no caso "**".
+            printf("O nome %s j√° existe.", usuario_cadastro.Nome); // verifica se o nome de entrada j√° existe usando a funcao login
+            exit(1);                                               // s√≥ que com uma senha que claramente n√£o est√° certa,  no caso "**".
         }
 
         printf("Senha:");
@@ -101,7 +102,7 @@ void cadastro()
         }
 
         fwrite(&usuario_cadastro, sizeof(dados), 1, Cadastros); // caso passe pelos tratamentos de string,
-        printf("\nSalvo com sucesso!");                         // grava a estrutura dados no arquivo bin·rio cadastros.dat
+        printf("\nSalvo com sucesso!");                         // grava a estrutura dados no arquivo bin√°rio cadastros.dat
         fclose(Cadastros);
 
         exit(1);
@@ -111,14 +112,15 @@ void cadastro()
 void login()
 {
     dados usuario_login;
+    int i = 0;
 
     FILE *Login;
 
-    Login = fopen("cadastros.dat", "rb"); // cria um arquivo bin·rio para gravaÁ„o ou apenas altera um existente
+    Login = fopen("cadastros.dat", "rb"); // cria um arquivo bin√°rio para grava√ß√£o ou apenas altera um existente
 
-    if (Login == NULL) // Caso n„o consiga abrir o arquivo
+    if (Login == NULL) // Caso n√£o consiga abrir o arquivo
     {
-        printf("falha ao ler o arquivo, pois n„o existem cadastros.");
+        printf("falha ao ler o arquivo, pois n√£o existem cadastros.");
         exit(1);
     }
     else
@@ -133,6 +135,16 @@ void login()
         fgets(usuario_login.Senha, TAMSENHA, stdin);
         usuario_login.Senha[strcspn(usuario_login.Senha, "\n")] = '\0';
 
+        while (verifica_Login(usuario_login.Senha, usuario_login.Nome) == 10 && i != TENTATIVA)
+        {
+            printf("Senha incorreta para %s, s√≥ restam %i tantativas\n", usuario_login.Nome, TENTATIVA - i);
+            limpaVetor(usuario_login.Senha);
+            printf("Senha:");
+            fgets(usuario_login.Senha, TAMSENHA, stdin);
+            usuario_login.Senha[strcspn(usuario_login.Senha, "\n")] = '\0';
+            i++;
+        }
+
         if (verifica_Login(usuario_login.Senha, usuario_login.Nome) == 0)
         {
             fclose(Login);
@@ -140,20 +152,13 @@ void login()
             printf("\nBem vindo(a), %s!", usuario_login.Nome);
             exit(1);
         }
-        if (verifica_Login(usuario_login.Senha, usuario_login.Nome) == 10)
-        { // verificando uam das 3 possibilidades da funcao verifica_Login
-            fclose(Login);
-            printf("Senha incorreta para %s", usuario_login.Nome);
-            exit(1);
-        }
         if (verifica_Login(usuario_login.Senha, usuario_login.Nome) == 1)
         {
             fclose(Login);
-            printf("Usu·rio %s inexistente", usuario_login.Nome);
+            printf("Usu√°rio %s inexistente", usuario_login.Nome);
             exit(1);
         }
-        else
-            printf("Algo deu errado... reinicie e tente novamente.");
+        printf("\nN√∫mero limite de tentativas atingido");
         exit(1);
     }
 }
@@ -161,9 +166,9 @@ void login()
 int verifica_Login(char senha[], char nome[])
 {
 
-    // funÁ„o verifica se usuario est· no documento e senha est· correta 
+    // fun√ßao verifica se usuario est√° no documento e senha est√° correta
     // retorno 0 = usuario e senha corretos
-    // retorno 10 = apenas usario est· correto e senha incorreta
+    // retorno 10 = apenas usario esta correto e senha incorreta
     // retorno 1 = usuario inexistente
 
     dados _usuario2;
@@ -178,9 +183,9 @@ int verifica_Login(char senha[], char nome[])
     }
     else
     {
-        while (fread(&_usuario2, sizeof(dados), 1, Verifica2)) // lÍ e retorna conforme o tamanho da estrutura
+        while (fread(&_usuario2, sizeof(dados), 1, Verifica2)) // l√™ e retorna conforme o tamanho da estrutura
         {
-            if (strcmp(_usuario2.Nome, nome) == 0 && strcmp(_usuario2.Senha, senha) == 0) // verifica enquanto houver dados se o nome e a senha est„o corretos
+            if (strcmp(_usuario2.Nome, nome) == 0 && strcmp(_usuario2.Senha, senha) == 0) // verifica enquanto houver dados se o nome e a senha est√£o corretos
             {
                 fclose(Verifica2);
                 return 0;
@@ -194,5 +199,14 @@ int verifica_Login(char senha[], char nome[])
 
         fclose(Verifica2);
         return 1;
+    }
+}
+
+void limpaVetor(char vetor[])
+{
+
+    for (int i = 0; i < strlen(vetor); i++)
+    {
+        vetor[i] = NULL;
     }
 }
